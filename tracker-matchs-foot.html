@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon Carnet de Matchs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0B1710;
+    --panel: #122018;
+    --panel-2: #16281d;
+    --line: #24382c;
+    --turf: #3FA34D;
+    --turf-dim: #2c7a3a;
+    --gold: #E8C547;
+    --chalk: #F2EFE4;
+    --chalk-dim: #9DAE9F;
+    --red: #E1594A;
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% -10%, rgba(63,163,77,0.18), transparent 45%),
+      repeating-linear-gradient(180deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 2px, transparent 2px, transparent 42px),
+      var(--bg);
+    color:var(--chalk);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    padding-bottom:60px;
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:0 20px;}
+
+  header.top{
+    border-bottom:1px solid var(--line);
+    padding:28px 0 0 0;
+    margin-bottom:10px;
+  }
+  header.top .head-inner{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:14px;padding-bottom:18px;}
+  .brand{display:flex;align-items:center;gap:14px;}
+  .brand .ball{
+    width:44px;height:44px;border-radius:50%;
+    background: conic-gradient(from 90deg, var(--turf) 0 60deg, transparent 60deg 120deg, var(--turf) 120deg 180deg, transparent 180deg 240deg, var(--turf) 240deg 300deg, transparent 300deg 360deg), var(--panel-2);
+    border:2px solid var(--turf-dim);
+    flex-shrink:0;
+  }
+  .brand h1{
+    font-family:'Bebas Neue', sans-serif;
+    font-size:38px;
+    letter-spacing:1.5px;
+    margin:0;
+    line-height:1;
+    color:var(--chalk);
+  }
+  .brand span.sub{display:block;font-family:'Inter';font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:600;margin-top:4px;}
+
+  nav.tabs{display:flex;gap:0;margin-top:6px;}
+  nav.tabs button{
+    font-family:'Bebas Neue', sans-serif;
+    font-size:19px;
+    letter-spacing:1px;
+    background:none;
+    border:none;
+    color:var(--chalk-dim);
+    padding:12px 22px;
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+    transition:.15s;
+  }
+  nav.tabs button:hover{color:var(--chalk);}
+  nav.tabs button.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px;
+  }
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:640px){.grid2{grid-template-columns:1fr;}}
+
+  label{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--chalk-dim);font-weight:600;display:block;margin-bottom:6px;}
+  input, select, textarea{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:6px;
+    color:var(--chalk);
+    padding:10px 12px;
+    font-family:'Inter';
+    font-size:14px;
+    outline:none;
+  }
+  input:focus, select:focus, textarea:focus{border-color:var(--turf);box-shadow:0 0 0 2px rgba(63,163,77,0.25);}
+  textarea{resize:vertical;min-height:70px;}
+  .field{margin-bottom:16px;}
+
+  .score-row{display:flex;align-items:center;gap:10px;}
+  .score-row input{text-align:center;font-family:'JetBrains Mono';font-weight:700;font-size:18px;}
+  .score-sep{font-family:'Bebas Neue';font-size:22px;color:var(--gold);}
+
+  .stars{display:flex;gap:6px;font-size:28px;cursor:pointer;user-select:none;}
+  .stars span{color:#3a4a3d;transition:.1s;}
+  .stars span.filled{color:var(--gold);}
+  .stars span:hover{transform:scale(1.1);}
+
+  .btn{
+    font-family:'Bebas Neue', sans-serif;
+    letter-spacing:1px;
+    font-size:16px;
+    background:var(--turf);
+    color:#08150c;
+    border:none;
+    border-radius:6px;
+    padding:12px 22px;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .btn:hover{background:#4dc25f;}
+  .btn.secondary{background:none;border:1px solid var(--line);color:var(--chalk);}
+  .btn.secondary:hover{border-color:var(--gold);color:var(--gold);}
+  .btn.small{padding:6px 12px;font-size:13px;}
+  .btn.danger{background:none;border:1px solid var(--red);color:var(--red);}
+  .btn.danger:hover{background:var(--red);color:#1a0c0a;}
+
+  .actions-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+
+  /* --- Dashboard --- */
+  .stat-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px;}
+  @media(max-width:900px){.stat-cards{grid-template-columns:repeat(3,1fr);}}
+  @media(max-width:560px){.stat-cards{grid-template-columns:repeat(2,1fr);}}
+  .stat-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .stat-card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg, var(--turf), var(--gold));
+  }
+  .stat-card .num{
+    font-family:'JetBrains Mono';font-weight:700;
+    font-size:34px;color:var(--gold);letter-spacing:1px;
+  }
+  .stat-card .lbl{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--chalk-dim);margin-top:6px;font-weight:600;}
+
+  .dash-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;margin-bottom:18px;}
+  @media(max-width:900px){.dash-grid{grid-template-columns:1fr;}}
+
+  .section-title{
+    font-family:'Bebas Neue';font-size:20px;letter-spacing:1px;
+    color:var(--chalk);margin:0 0 14px 0;
+    display:flex;align-items:center;gap:8px;
+  }
+  .section-title::before{content:'';width:6px;height:18px;background:var(--turf);display:inline-block;border-radius:2px;}
+
+  .comp-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:13px;}
+  .comp-bar-row .comp-name{width:130px;flex-shrink:0;color:var(--chalk-dim);}
+  .comp-bar-track{flex:1;background:var(--panel-2);border-radius:4px;height:16px;overflow:hidden;border:1px solid var(--line);display:flex;}
+  .comp-bar-fill{height:100%;background:linear-gradient(90deg, var(--turf-dim), var(--turf));}
+  .comp-bar-fill-multiplex{height:100%;background:linear-gradient(90deg, var(--gold), #f2df9c);}
+  .comp-bar-count{min-width:64px;text-align:right;font-family:'JetBrains Mono';font-weight:700;font-size:12px;}
+  .comp-bar-count .n-individual{color:var(--turf);}
+  .comp-bar-count .n-multiplex{color:var(--gold);}
+  .chart-legend{display:flex;gap:16px;font-size:11.5px;color:var(--chalk-dim);margin-bottom:14px;}
+  .chart-legend span{display:flex;align-items:center;gap:6px;}
+  .chart-legend .dot{width:9px;height:9px;border-radius:2px;display:inline-block;}
+  .chart-legend .dot.individual{background:var(--turf);}
+  .chart-legend .dot.multiplex{background:var(--gold);}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{
+    text-align:left;text-transform:uppercase;font-size:10.5px;letter-spacing:1px;
+    color:var(--chalk-dim);padding:8px 8px;border-bottom:1px solid var(--line);font-weight:700;
+  }
+  td{padding:9px 8px;border-bottom:1px solid var(--line);}
+  tr:last-child td{border-bottom:none;}
+  td.num, th.num{text-align:center;font-family:'JetBrains Mono';}
+  .team-name{font-weight:600;}
+
+  .feed-item{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:12px 0;border-bottom:1px solid var(--line);gap:10px;flex-wrap:wrap;
+  }
+  .feed-item:last-child{border-bottom:none;}
+  .feed-match{font-weight:600;}
+  .feed-meta{font-size:12px;color:var(--chalk-dim);margin-top:2px;}
+  .feed-score{
+    font-family:'JetBrains Mono';font-weight:700;color:var(--gold);
+    background:var(--panel-2);padding:4px 10px;border-radius:5px;border:1px solid var(--line);
+  }
+  .badge{
+    display:inline-block;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;
+    padding:2px 8px;border-radius:20px;background:var(--panel-2);border:1px solid var(--line);color:var(--chalk-dim);
+  }
+  .badge.multiplex{background:rgba(232,197,71,0.15);border-color:var(--gold);color:var(--gold);font-weight:700;}
+
+  .toggle-row{display:flex;align-items:center;gap:12px;cursor:pointer;font-size:14px;color:var(--chalk);text-transform:none;letter-spacing:0;font-weight:500;}
+  .toggle-switch{position:relative;width:42px;height:24px;flex-shrink:0;}
+  .toggle-switch input{opacity:0;width:0;height:0;position:absolute;}
+  .toggle-slider{
+    position:absolute;top:0;left:0;right:0;bottom:0;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:24px;transition:.15s;
+  }
+  .toggle-slider::before{
+    content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;
+    background:var(--chalk-dim);border-radius:50%;transition:.15s;
+  }
+  .toggle-switch input:checked + .toggle-slider{background:var(--turf-dim);border-color:var(--turf);}
+  .toggle-switch input:checked + .toggle-slider::before{transform:translateX(18px);background:var(--gold);}
+
+  .submatch-list{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
+  .submatch-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:8px 10px;}
+  .submatch-row input{background:var(--panel);}
+  .submatch-row input.sm-home, .submatch-row input.sm-away{flex:1;min-width:100px;}
+  .submatch-row input.sm-score-home, .submatch-row input.sm-score-away{flex:0 0 54px;min-width:54px;text-align:center;font-family:'JetBrains Mono';font-weight:700;}
+  .submatch-row .sm-sep{color:var(--gold);font-family:'Bebas Neue';font-size:18px;flex:0 0 auto;}
+  .submatch-row .sm-remove{flex:0 0 auto;}
+
+  /* --- Match list --- */
+  .toolbar{display:flex;gap:10px;align-items:center;margin:26px 0 14px 0;flex-wrap:wrap;justify-content:space-between;}
+  .search-box{flex:1;min-width:220px;position:relative;}
+  .search-box input{padding-left:34px;}
+  .search-box::before{
+    content:'⚲';position:absolute;left:12px;top:50%;transform:translateY(-50%) rotate(45deg);
+    color:var(--chalk-dim);font-size:14px;
+  }
+  .match-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px 18px;margin-bottom:12px;
+    display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+  }
+  .match-left{display:flex;flex-direction:column;gap:4px;}
+  .match-teams{font-family:'Bebas Neue';font-size:20px;letter-spacing:.5px;}
+  .match-teams .score{color:var(--gold);}
+  .match-sub{font-size:12px;color:var(--chalk-dim);display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .match-comment{font-size:13px;color:var(--chalk-dim);margin-top:4px;font-style:italic;max-width:520px;}
+  .match-stars{color:var(--gold);letter-spacing:2px;font-size:14px;}
+  .match-right{display:flex;gap:8px;align-items:center;}
+
+  /* --- Ligues --- */
+  .comp-row{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:12px 4px;border-bottom:1px solid var(--line);flex-wrap:wrap;
+  }
+  .comp-row:last-child{border-bottom:none;}
+  .comp-row-left{display:flex;align-items:center;gap:10px;}
+  .comp-row-name{font-weight:600;}
+  .comp-row-count{font-size:11.5px;color:var(--chalk-dim);}
+
+  .empty{
+    text-align:center;padding:40px 20px;color:var(--chalk-dim);
+  }
+  .empty .ball-icon{font-size:34px;display:block;margin-bottom:10px;}
+
+  ::placeholder{color:#5c6f60;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="head-inner">
+      <div class="brand">
+        <div class="ball"></div>
+        <div>
+          <h1>MON CARNET DE MATCHS</h1>
+          <span class="sub">Journal personnel de suivi football</span>
+        </div>
+      </div>
+    </div>
+    <nav class="tabs">
+      <button id="tab-btn-saisie" class="active" onclick="switchTab('saisie')">SAISIE</button>
+      <button id="tab-btn-ligues" onclick="switchTab('ligues')">LIGUES</button>
+      <button id="tab-btn-dashboard" onclick="switchTab('dashboard')">TABLEAU DE BORD</button>
+    </nav>
+  </header>
+
+  <!-- ===================== ONGLET SAISIE ===================== -->
+  <section id="tab-saisie">
+    <div class="panel" style="margin-top:20px;">
+      <div class="section-title">Nouveau match</div>
+      <div id="match-form">
+        <div class="field">
+          <label class="toggle-row">
+            <span class="toggle-switch">
+              <input type="checkbox" id="f-is-multiplex">
+              <span class="toggle-slider"></span>
+            </span>
+            <span>C'était un multiplex (plusieurs matchs suivis en simultané)</span>
+          </label>
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="f-date" required>
+          </div>
+          <div class="field">
+            <label>Compétition</label>
+            <select id="f-competition"></select>
+          </div>
+        </div>
+
+        <div id="simple-match-fields" class="grid2">
+          <div class="field">
+            <label>Équipe à domicile</label>
+            <input type="text" id="f-home" placeholder="Ex : PSG">
+          </div>
+          <div class="field">
+            <label>Équipe à l'extérieur</label>
+            <input type="text" id="f-away" placeholder="Ex : OM">
+          </div>
+          <div class="field">
+            <label>Score</label>
+            <div class="score-row">
+              <input type="number" id="f-score-home" min="0" placeholder="0">
+              <span class="score-sep">—</span>
+              <input type="number" id="f-score-away" min="0" placeholder="0">
+            </div>
+          </div>
+        </div>
+
+        <div id="multiplex-fields" class="field" style="display:none;">
+          <label>Matchs inclus dans le multiplex (avec leur score individuel)</label>
+          <div id="multiplex-submatches-list" class="submatch-list"></div>
+          <button type="button" id="btn-add-submatch" class="btn secondary small" style="margin-top:8px;">+ Ajouter un match</button>
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label>Durée (minutes)</label>
+            <input type="number" id="f-duration" value="90" min="1" required>
+          </div>
+        </div>
+        <div class="field">
+          <label>Commentaire</label>
+          <textarea id="f-comment" placeholder="Vos impressions sur le match..."></textarea>
+        </div>
+        <div class="field">
+          <label>Note</label>
+          <div class="stars" id="f-stars" data-value="0">
+            <span data-star="1">★</span><span data-star="2">★</span><span data-star="3">★</span><span data-star="4">★</span><span data-star="5">★</span>
+          </div>
+        </div>
+        <div class="actions-row">
+          <button type="button" id="btn-add-match" class="btn">Ajouter le match</button>
+          <button type="button" id="btn-cancel-edit" class="btn secondary" style="display:none;">Annuler la modification</button>
+          <button type="button" class="btn secondary" onclick="loadDemoData()">Charger 5 matchs de démo</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Rechercher une équipe, une compétition, un commentaire..." oninput="renderMatchList()">
+      </div>
+      <button class="btn secondary" onclick="exportCSV()">Exporter en CSV</button>
+    </div>
+
+    <div id="match-list"></div>
+  </section>
+
+  <!-- ===================== ONGLET LIGUES ===================== -->
+  <section id="tab-ligues" style="display:none;">
+    <div class="panel" style="margin-top:20px;">
+      <div class="section-title">Ajouter une compétition</div>
+      <div id="competition-form" class="actions-row" style="align-items:flex-end;">
+        <div class="field" style="flex:1;min-width:220px;margin-bottom:0;">
+          <label>Nom de la compétition</label>
+          <input type="text" id="f-new-competition" placeholder="Ex : Coupe du Monde des Clubs">
+        </div>
+        <button type="button" id="btn-add-competition" class="btn">Ajouter la ligue</button>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="section-title">Mes compétitions</div>
+      <div id="competitions-list"></div>
+    </div>
+  </section>
+
+  <!-- ===================== ONGLET DASHBOARD ===================== -->
+  <section id="tab-dashboard" style="display:none;">
+    <div class="stat-cards" style="margin-top:20px;">
+      <div class="stat-card"><div class="num" id="stat-individual-matches">0</div><div class="lbl">Matchs individuels</div></div>
+      <div class="stat-card"><div class="num" id="stat-multiplex-count">0</div><div class="lbl">Multiplex suivis</div></div>
+      <div class="stat-card"><div class="num" id="stat-total-minutes">0</div><div class="lbl">Minutes totales</div></div>
+      <div class="stat-card"><div class="num" id="stat-avg-rating">0.0</div><div class="lbl">Note moyenne</div></div>
+      <div class="stat-card"><div class="num" id="stat-total-teams">0</div><div class="lbl">Équipes suivies</div></div>
+    </div>
+
+    <div class="dash-grid">
+      <div class="panel">
+        <div class="section-title">Répartition par compétition</div>
+        <div class="chart-legend">
+          <span><span class="dot individual"></span>Matchs individuels</span>
+          <span><span class="dot multiplex"></span>Multiplex</span>
+        </div>
+        <div id="comp-chart"></div>
+      </div>
+      <div class="panel">
+        <div class="section-title">5 derniers matchs</div>
+        <div id="recent-feed"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title">Classement par équipe</div>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Équipe</th>
+              <th class="num">Matchs vus</th>
+              <th class="num">V</th>
+              <th class="num">N</th>
+              <th class="num">D</th>
+              <th class="num">Buts</th>
+            </tr>
+          </thead>
+          <tbody id="ranking-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  const STORAGE_KEY = 'football_tracker_matches';
+  const COMP_STORAGE_KEY = 'football_tracker_competitions';
+  const DEFAULT_COMPETITIONS = ['Ligue des Champions', 'Ligue 1', 'Premier League', 'Liga', 'Serie A', 'Coupe de France', 'Autre'];
+  let matches = [];
+  let competitions = [];
+
+  // ---------- Storage : matchs ----------
+  function loadMatches(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      matches = raw ? JSON.parse(raw) : [];
+      if(!Array.isArray(matches)) matches = [];
+    }catch(e){ matches = []; }
+  }
+  function saveMatches(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(matches));
+    }catch(e){
+      alert("Erreur : impossible de sauvegarder les matchs dans le stockage local.");
+    }
+  }
+
+  // ---------- Storage : compétitions (ligues) ----------
+  function loadCompetitions(){
+    try{
+      const raw = localStorage.getItem(COMP_STORAGE_KEY);
+      competitions = raw ? JSON.parse(raw) : null;
+      if(!Array.isArray(competitions) || competitions.length === 0){
+        competitions = [...DEFAULT_COMPETITIONS];
+        saveCompetitions();
+      }
+    }catch(e){
+      competitions = [...DEFAULT_COMPETITIONS];
+    }
+  }
+  function saveCompetitions(){
+    try{
+      localStorage.setItem(COMP_STORAGE_KEY, JSON.stringify(competitions));
+    }catch(e){
+      alert("Erreur : impossible de sauvegarder les ligues dans le stockage local.");
+    }
+  }
+
+  // ---------- Tabs ----------
+  function switchTab(name){
+    document.getElementById('tab-saisie').style.display = name === 'saisie' ? 'block' : 'none';
+    document.getElementById('tab-ligues').style.display = name === 'ligues' ? 'block' : 'none';
+    document.getElementById('tab-dashboard').style.display = name === 'dashboard' ? 'block' : 'none';
+    document.getElementById('tab-btn-saisie').classList.toggle('active', name === 'saisie');
+    document.getElementById('tab-btn-ligues').classList.toggle('active', name === 'ligues');
+    document.getElementById('tab-btn-dashboard').classList.toggle('active', name === 'dashboard');
+    if(name === 'ligues') renderCompetitionsManager();
+    if(name === 'dashboard') renderDashboard();
+  }
+
+  // ---------- Gestion dynamique des compétitions ----------
+  let pendingDeleteIndex = null;
+  let pendingDeleteTimeout = null;
+
+  function renderCompetitionSelect(){
+    const select = document.getElementById('f-competition');
+    const previousValue = select.value;
+    select.innerHTML = competitions.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    if(competitions.includes(previousValue)) select.value = previousValue;
+  }
+
+  function renderCompetitionsManager(){
+    const listEl = document.getElementById('competitions-list');
+    if(!listEl) return;
+    if(competitions.length === 0){
+      listEl.innerHTML = `<div class="empty">Aucune compétition. Ajoutez-en une ci-dessus.</div>`;
+      return;
+    }
+    listEl.innerHTML = competitions.map((c, idx) => {
+      const usageCount = matches.filter(m => m.competition === c).length;
+      const isPending = idx === pendingDeleteIndex;
+      return `
+        <div class="comp-row">
+          <div class="comp-row-left">
+            <span class="badge">${escapeHtml(c)}</span>
+            <span class="comp-row-count">${usageCount} match${usageCount > 1 ? 's' : ''} enregistré${usageCount > 1 ? 's' : ''}</span>
+          </div>
+          <button type="button" class="btn small ${isPending ? '' : 'danger'}" data-comp-index="${idx}" ${isPending ? 'style="background:var(--red);color:#1a0c0a;border-color:var(--red);"' : ''}>${isPending ? 'Confirmer la suppression ?' : 'Supprimer'}</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function addCompetition(){
+    const input = document.getElementById('f-new-competition');
+    const name = input.value.trim();
+    if(!name){
+      input.focus();
+      return;
+    }
+    const alreadyExists = competitions.some(c => c.toLowerCase() === name.toLowerCase());
+    if(alreadyExists){
+      alert('Cette compétition existe déjà.');
+      input.select();
+      return;
+    }
+    competitions.push(name);
+    saveCompetitions();
+    renderCompetitionSelect();
+    renderCompetitionsManager();
+    input.value = '';
+    input.focus();
+  }
+
+  const addCompBtn = document.getElementById('btn-add-competition');
+  if(addCompBtn) addCompBtn.addEventListener('click', addCompetition);
+
+  const newCompInput = document.getElementById('f-new-competition');
+  if(newCompInput){
+    newCompInput.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){
+        e.preventDefault();
+        addCompetition();
+      }
+    });
+  }
+
+  const compListEl = document.getElementById('competitions-list');
+  if(compListEl){
+    compListEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-comp-index]');
+      if(!btn) return;
+      const idx = parseInt(btn.dataset.compIndex, 10);
+      if(Number.isNaN(idx) || !competitions[idx]) return;
+
+      if(pendingDeleteIndex === idx){
+        // Deuxième clic : suppression confirmée
+        clearTimeout(pendingDeleteTimeout);
+        competitions.splice(idx, 1);
+        pendingDeleteIndex = null;
+        saveCompetitions();
+        renderCompetitionSelect();
+        renderCompetitionsManager();
+      } else {
+        // Premier clic : passage en mode confirmation (4 secondes)
+        pendingDeleteIndex = idx;
+        renderCompetitionsManager();
+        clearTimeout(pendingDeleteTimeout);
+        pendingDeleteTimeout = setTimeout(() => {
+          pendingDeleteIndex = null;
+          renderCompetitionsManager();
+        }, 4000);
+      }
+    });
+  }
+
+  // ---------- Stars widget ----------
+  const starsEl = document.getElementById('f-stars');
+  starsEl.addEventListener('click', (e) => {
+    const star = e.target.closest('span[data-star]');
+    if(!star) return;
+    const val = parseInt(star.dataset.star, 10);
+    starsEl.dataset.value = val;
+    renderStars(starsEl, val);
+  });
+  function renderStars(container, value){
+    container.querySelectorAll('span[data-star]').forEach(s => {
+      s.classList.toggle('filled', parseInt(s.dataset.star,10) <= value);
+    });
+  }
+
+  // ---------- Toggle Multiplex ----------
+  const multiplexCheckbox = document.getElementById('f-is-multiplex');
+  const simpleFieldsEl = document.getElementById('simple-match-fields');
+  const multiplexFieldsEl = document.getElementById('multiplex-fields');
+  const submatchListEl = document.getElementById('multiplex-submatches-list');
+  let submatchRowCounter = 0;
+  let editingMatchId = null;
+
+  function addSubmatchRow(data){
+    data = data || {};
+    submatchRowCounter++;
+    const row = document.createElement('div');
+    row.className = 'submatch-row';
+    row.dataset.rowId = 'sm-' + submatchRowCounter;
+    row.innerHTML = `
+      <input type="text" class="sm-home" placeholder="Équipe domicile" value="${escapeHtml(data.home || '')}">
+      <input type="number" class="sm-score-home" min="0" placeholder="0" value="${data.scoreHome === null || data.scoreHome === undefined ? '' : data.scoreHome}">
+      <span class="sm-sep">—</span>
+      <input type="number" class="sm-score-away" min="0" placeholder="0" value="${data.scoreAway === null || data.scoreAway === undefined ? '' : data.scoreAway}">
+      <input type="text" class="sm-away" placeholder="Équipe extérieure" value="${escapeHtml(data.away || '')}">
+      <button type="button" class="btn danger small sm-remove">✕</button>
+    `;
+    submatchListEl.appendChild(row);
+  }
+  function clearSubmatchRows(){
+    submatchListEl.innerHTML = '';
+  }
+  function collectSubMatches(){
+    const rows = submatchListEl.querySelectorAll('.submatch-row');
+    const subs = [];
+    rows.forEach(row => {
+      const home = row.querySelector('.sm-home').value.trim();
+      const away = row.querySelector('.sm-away').value.trim();
+      const scoreHomeRaw = row.querySelector('.sm-score-home').value;
+      const scoreAwayRaw = row.querySelector('.sm-score-away').value;
+      if(!home && !away) return; // ligne vide, on l'ignore
+      subs.push({
+        home: home || 'Équipe inconnue',
+        away: away || 'Équipe inconnue',
+        scoreHome: scoreHomeRaw === '' ? null : (parseInt(scoreHomeRaw, 10) || 0),
+        scoreAway: scoreAwayRaw === '' ? null : (parseInt(scoreAwayRaw, 10) || 0)
+      });
+    });
+    return subs;
+  }
+  submatchListEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.sm-remove');
+    if(!btn) return;
+    btn.closest('.submatch-row').remove();
+  });
+  document.getElementById('btn-add-submatch').addEventListener('click', () => addSubmatchRow());
+
+  multiplexCheckbox.addEventListener('change', () => {
+    const isMultiplex = multiplexCheckbox.checked;
+    simpleFieldsEl.style.display = isMultiplex ? 'none' : 'grid';
+    multiplexFieldsEl.style.display = isMultiplex ? 'block' : 'none';
+    if(isMultiplex && submatchListEl.children.length === 0){
+      addSubmatchRow();
+      addSubmatchRow();
+    }
+  });
+
+  // ---------- Ajout / modification d'un match (clic direct, sans soumission de formulaire) ----------
+  function resetMatchForm(){
+    document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+    document.getElementById('f-home').value = '';
+    document.getElementById('f-away').value = '';
+    document.getElementById('f-score-home').value = '';
+    document.getElementById('f-score-away').value = '';
+    document.getElementById('f-duration').value = 90;
+    document.getElementById('f-comment').value = '';
+    starsEl.dataset.value = 0;
+    renderStars(starsEl, 0);
+    multiplexCheckbox.checked = false;
+    simpleFieldsEl.style.display = 'grid';
+    multiplexFieldsEl.style.display = 'none';
+    clearSubmatchRows();
+    editingMatchId = null;
+    document.getElementById('btn-add-match').textContent = 'Ajouter le match';
+    document.getElementById('btn-cancel-edit').style.display = 'none';
+  }
+
+  function addMatch(){
+    const isMultiplex = multiplexCheckbox.checked;
+
+    let match;
+    if(isMultiplex){
+      const subMatches = collectSubMatches();
+      const multiplexTeams = Array.from(new Set(subMatches.flatMap(s => [s.home, s.away])));
+      match = {
+        id: editingMatchId || (Date.now() + Math.random().toString(16).slice(2)),
+        date: document.getElementById('f-date').value || new Date().toISOString().slice(0,10),
+        competition: document.getElementById('f-competition').value,
+        isMultiplex: true,
+        subMatches,
+        multiplexTeams,
+        multiplexCount: subMatches.length || 1,
+        home: null,
+        away: null,
+        scoreHome: null,
+        scoreAway: null,
+        duration: parseInt(document.getElementById('f-duration').value, 10) || 90,
+        comment: document.getElementById('f-comment').value.trim(),
+        rating: parseInt(starsEl.dataset.value, 10) || 0
+      };
+    } else {
+      match = {
+        id: editingMatchId || (Date.now() + Math.random().toString(16).slice(2)),
+        date: document.getElementById('f-date').value || new Date().toISOString().slice(0,10),
+        competition: document.getElementById('f-competition').value,
+        isMultiplex: false,
+        subMatches: [],
+        multiplexTeams: [],
+        multiplexCount: 1,
+        home: document.getElementById('f-home').value.trim(),
+        away: document.getElementById('f-away').value.trim(),
+        scoreHome: parseInt(document.getElementById('f-score-home').value, 10) || 0,
+        scoreAway: parseInt(document.getElementById('f-score-away').value, 10) || 0,
+        duration: parseInt(document.getElementById('f-duration').value, 10) || 90,
+        comment: document.getElementById('f-comment').value.trim(),
+        rating: parseInt(starsEl.dataset.value, 10) || 0
+      };
+    }
+
+    if(editingMatchId){
+      const idx = matches.findIndex(m => m.id === editingMatchId);
+      if(idx !== -1) matches[idx] = match;
+      else matches.unshift(match);
+    } else {
+      matches.unshift(match);
+    }
+    saveMatches();
+    resetMatchForm();
+    renderMatchList();
+  }
+
+  const addMatchBtn = document.getElementById('btn-add-match');
+  if(addMatchBtn) addMatchBtn.addEventListener('click', addMatch);
+
+  document.getElementById('btn-cancel-edit').addEventListener('click', resetMatchForm);
+
+  function startEditMatch(id){
+    const m = matches.find(x => x.id === id);
+    if(!m) return;
+    editingMatchId = id;
+
+    document.getElementById('f-date').value = m.date || new Date().toISOString().slice(0,10);
+    document.getElementById('f-competition').value = m.competition;
+    document.getElementById('f-duration').value = m.duration || 90;
+    document.getElementById('f-comment').value = m.comment || '';
+    starsEl.dataset.value = m.rating || 0;
+    renderStars(starsEl, m.rating || 0);
+
+    multiplexCheckbox.checked = !!m.isMultiplex;
+    clearSubmatchRows();
+    if(m.isMultiplex){
+      simpleFieldsEl.style.display = 'none';
+      multiplexFieldsEl.style.display = 'block';
+      document.getElementById('f-home').value = '';
+      document.getElementById('f-away').value = '';
+      document.getElementById('f-score-home').value = '';
+      document.getElementById('f-score-away').value = '';
+      const subs = (m.subMatches && m.subMatches.length)
+        ? m.subMatches
+        : (m.multiplexTeams || []).map(t => ({home:t, away:'', scoreHome:null, scoreAway:null}));
+      if(subs.length === 0){
+        addSubmatchRow();
+        addSubmatchRow();
+      } else {
+        subs.forEach(s => addSubmatchRow(s));
+      }
+    } else {
+      simpleFieldsEl.style.display = 'grid';
+      multiplexFieldsEl.style.display = 'none';
+      document.getElementById('f-home').value = m.home || '';
+      document.getElementById('f-away').value = m.away || '';
+      document.getElementById('f-score-home').value = m.scoreHome ?? '';
+      document.getElementById('f-score-away').value = m.scoreAway ?? '';
+    }
+
+    document.getElementById('btn-add-match').textContent = 'Enregistrer les modifications';
+    document.getElementById('btn-cancel-edit').style.display = 'inline-block';
+    switchTab('saisie');
+    document.getElementById('match-form').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  function deleteMatch(id){
+    matches = matches.filter(m => m.id !== id);
+    saveMatches();
+    if(editingMatchId === id) resetMatchForm();
+    renderMatchList();
+  }
+
+  // ---------- Demo data ----------
+  function loadDemoData(){
+    const demo = [
+      {id:'d1', date:'2026-05-31', competition:'Ligue des Champions', isMultiplex:false, subMatches:[], multiplexTeams:[], multiplexCount:1, home:'PSG', away:'Inter Milan', scoreHome:5, scoreAway:0, duration:90, comment:"Soirée historique, le PSG rentre dans l'histoire.", rating:5},
+      {id:'d2', date:'2026-04-14', competition:'Ligue 1', isMultiplex:false, subMatches:[], multiplexTeams:[], multiplexCount:1, home:'Marseille', away:'Lyon', scoreHome:2, scoreAway:2, duration:96, comment:'Match nul spectaculaire dans le classico du sud.', rating:4},
+      {id:'d3', date:'2026-03-02', competition:'Premier League', isMultiplex:false, subMatches:[], multiplexTeams:[], multiplexCount:1, home:'Arsenal', away:'Manchester City', scoreHome:1, scoreAway:0, duration:97, comment:'Défense de fer, victoire précieuse.', rating:4},
+      {id:'d4', date:'2026-02-18', competition:'Liga', isMultiplex:false, subMatches:[], multiplexTeams:[], multiplexCount:1, home:'Real Madrid', away:'Barcelone', scoreHome:3, scoreAway:2, duration:99, comment:'Clasico complètement fou.', rating:5},
+      {id:'d5', date:'2026-01-25', competition:'Ligue 1', isMultiplex:true,
+        subMatches:[
+          {home:'Monaco', away:'Nice', scoreHome:2, scoreAway:1},
+          {home:'Lille', away:'Strasbourg', scoreHome:0, scoreAway:0},
+          {home:'Lens', away:'Rennes', scoreHome:1, scoreAway:3},
+          {home:'Brest', away:'Toulouse', scoreHome:2, scoreAway:2}
+        ],
+        multiplexTeams:['Monaco','Nice','Lille','Strasbourg','Lens','Rennes','Brest','Toulouse'],
+        multiplexCount:4, home:null, away:null, scoreHome:null, scoreAway:null, duration:120,
+        comment:'Grand multiplex du samedi soir, ambiance électrique sur les 4 rencontres.', rating:4}
+    ];
+    matches = [...demo, ...matches.filter(m => !demo.some(d => d.id === m.id))];
+    saveMatches();
+    renderMatchList();
+    renderDashboard();
+  }
+
+  // ---------- Render match list (Saisie tab) ----------
+  function renderMatchList(){
+    const query = document.getElementById('search-input').value.trim().toLowerCase();
+    const listEl = document.getElementById('match-list');
+
+    const sorted = [...matches].sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+    const filtered = sorted.filter(m => {
+      if(!query) return true;
+      const multiplexText = m.isMultiplex ? `multiplex ${(m.multiplexTeams || []).join(' ')}` : '';
+      const haystack = `${m.home || ''} ${m.away || ''} ${m.competition} ${m.comment} ${multiplexText}`.toLowerCase();
+      return haystack.includes(query);
+    });
+
+    if(filtered.length === 0){
+      listEl.innerHTML = `<div class="empty"><span class="ball-icon">⚽</span>Aucun match trouvé. Ajoutez votre premier match ci-dessus.</div>`;
+      return;
+    }
+
+    listEl.innerHTML = filtered.map(m => {
+      const titleHtml = m.isMultiplex
+        ? `<div class="match-teams">Multiplex <span class="score">${m.multiplexCount || (m.multiplexTeams||[]).length || '?'} matchs</span></div>`
+        : `<div class="match-teams">${escapeHtml(m.home)} <span class="score">${m.scoreHome} — ${m.scoreAway}</span> ${escapeHtml(m.away)}</div>`;
+      const teamsLine = (m.isMultiplex && m.subMatches && m.subMatches.length)
+        ? `<div class="match-comment" style="font-style:normal;">${m.subMatches.map(s => `${escapeHtml(s.home)} <span style="color:var(--gold);">${s.scoreHome ?? '?'} — ${s.scoreAway ?? '?'}</span> ${escapeHtml(s.away)}`).join(' &nbsp;·&nbsp; ')}</div>`
+        : (m.isMultiplex && m.multiplexTeams && m.multiplexTeams.length)
+          ? `<div class="match-comment" style="font-style:normal;">Équipes suivies : ${m.multiplexTeams.map(escapeHtml).join(', ')}</div>`
+          : '';
+      return `
+      <div class="match-card">
+        <div class="match-left">
+          ${titleHtml}
+          <div class="match-sub">
+            ${m.isMultiplex ? `<span class="badge multiplex">Multiplex</span>` : ''}
+            <span class="badge">${escapeHtml(m.competition)}</span>
+            <span>${formatDate(m.date)}</span>
+            <span>${m.duration} min</span>
+            <span class="match-stars">${'★'.repeat(m.rating)}${'☆'.repeat(5-m.rating)}</span>
+          </div>
+          ${teamsLine}
+          ${m.comment ? `<div class="match-comment">"${escapeHtml(m.comment)}"</div>` : ''}
+        </div>
+        <div class="match-right">
+          <button class="btn secondary small" onclick="startEditMatch('${m.id}')">Modifier</button>
+          <button class="btn danger small" onclick="deleteMatch('${m.id}')">Supprimer</button>
+        </div>
+      </div>
+    `;
+    }).join('');
+  }
+
+  // ---------- Dashboard ----------
+  function renderDashboard(){
+    // On distingue les matchs individuels des multiplex (chaque multiplex regroupe des matchs différents,
+    // on ne les additionne donc pas au même compteur)
+    const individualCount = matches.filter(m => !m.isMultiplex).length;
+    const multiplexCount = matches.filter(m => m.isMultiplex).length;
+    const totalMinutes = matches.reduce((sum, m) => sum + (m.duration || 0), 0);
+    const totalEntries = matches.length;
+    const avgRating = totalEntries ? (matches.reduce((sum, m) => sum + (m.rating || 0), 0) / totalEntries) : 0;
+
+    // Team ranking
+    const teams = {};
+    function ensureTeam(name){
+      if(!teams[name]) teams[name] = {name, played:0, wins:0, draws:0, losses:0, goals:0};
+      return teams[name];
+    }
+    matches.forEach(m => {
+      if(m.isMultiplex){
+        if(m.subMatches && m.subMatches.length){
+          // Multiplex avec scores détaillés : chaque match compte comme un vrai match, avec buts et résultat
+          m.subMatches.forEach(s => {
+            const home = ensureTeam(s.home);
+            const away = ensureTeam(s.away);
+            home.played++; away.played++;
+            if(typeof s.scoreHome === 'number' && typeof s.scoreAway === 'number'){
+              home.goals += s.scoreHome; away.goals += s.scoreAway;
+              if(s.scoreHome > s.scoreAway){ home.wins++; away.losses++; }
+              else if(s.scoreHome < s.scoreAway){ away.wins++; home.losses++; }
+              else { home.draws++; away.draws++; }
+            }
+          });
+        } else {
+          // Anciennes entrées multiplex sans détail : on compte juste l'apparition, sans score
+          (m.multiplexTeams || []).forEach(teamName => {
+            ensureTeam(teamName).played++;
+          });
+        }
+        return;
+      }
+      if(!m.home || !m.away) return;
+      const home = ensureTeam(m.home);
+      const away = ensureTeam(m.away);
+      home.played++; away.played++;
+      home.goals += m.scoreHome; away.goals += m.scoreAway;
+      if(m.scoreHome > m.scoreAway){ home.wins++; away.losses++; }
+      else if(m.scoreHome < m.scoreAway){ away.wins++; home.losses++; }
+      else { home.draws++; away.draws++; }
+    });
+    const teamList = Object.values(teams).sort((a,b) => b.played - a.played || b.wins - a.wins);
+
+    document.getElementById('stat-individual-matches').textContent = individualCount;
+    document.getElementById('stat-multiplex-count').textContent = multiplexCount;
+    document.getElementById('stat-total-minutes').textContent = totalMinutes;
+    document.getElementById('stat-avg-rating').textContent = avgRating.toFixed(1);
+    document.getElementById('stat-total-teams').textContent = teamList.length;
+
+    // Competition chart : répartition matchs individuels / multiplex, par compétition
+    const compStats = {};
+    matches.forEach(m => {
+      if(!compStats[m.competition]) compStats[m.competition] = {individual:0, multiplex:0};
+      if(m.isMultiplex) compStats[m.competition].multiplex++;
+      else compStats[m.competition].individual++;
+    });
+    const maxCount = Math.max(1, ...Object.values(compStats).map(s => s.individual + s.multiplex));
+    const compChartEl = document.getElementById('comp-chart');
+    const compEntries = Object.entries(compStats).sort((a,b) => (b[1].individual + b[1].multiplex) - (a[1].individual + a[1].multiplex));
+    compChartEl.innerHTML = compEntries.length ? compEntries.map(([name, s]) => `
+      <div class="comp-bar-row">
+        <div class="comp-name">${escapeHtml(name)}</div>
+        <div class="comp-bar-track">
+          <div class="comp-bar-fill" style="width:${(s.individual/maxCount*100).toFixed(0)}%"></div>
+          <div class="comp-bar-fill-multiplex" style="width:${(s.multiplex/maxCount*100).toFixed(0)}%"></div>
+        </div>
+        <div class="comp-bar-count"><span class="n-individual">${s.individual}</span> / <span class="n-multiplex">${s.multiplex}</span></div>
+      </div>
+    `).join('') : `<div class="empty">Aucune donnée pour l'instant.</div>`;
+
+    // Ranking table
+    const rankingBody = document.getElementById('ranking-body');
+    rankingBody.innerHTML = teamList.length ? teamList.map(t => `
+      <tr>
+        <td class="team-name">${escapeHtml(t.name)}</td>
+        <td class="num">${t.played}</td>
+        <td class="num">${t.wins}</td>
+        <td class="num">${t.draws}</td>
+        <td class="num">${t.losses}</td>
+        <td class="num">${t.goals}</td>
+      </tr>
+    `).join('') : `<tr><td colspan="6" class="empty">Aucune équipe pour l'instant.</td></tr>`;
+
+    // Recent feed (5 last by date)
+    const recent = [...matches].sort((a,b) => (b.date || '').localeCompare(a.date || '')).slice(0,5);
+    const feedEl = document.getElementById('recent-feed');
+    feedEl.innerHTML = recent.length ? recent.map(m => {
+      if(m.isMultiplex){
+        const teamsLabel = (m.multiplexTeams && m.multiplexTeams.length) ? m.multiplexTeams.map(escapeHtml).join(', ') : 'équipes non précisées';
+        return `
+        <div class="feed-item">
+          <div>
+            <div class="feed-match">Multiplex — ${teamsLabel}</div>
+            <div class="feed-meta">${escapeHtml(m.competition)} · ${formatDate(m.date)}</div>
+          </div>
+          <div class="feed-score">${m.multiplexCount || (m.multiplexTeams||[]).length || '?'} matchs</div>
+        </div>`;
+      }
+      return `
+      <div class="feed-item">
+        <div>
+          <div class="feed-match">${escapeHtml(m.home)} vs ${escapeHtml(m.away)}</div>
+          <div class="feed-meta">${escapeHtml(m.competition)} · ${formatDate(m.date)}</div>
+        </div>
+        <div class="feed-score">${m.scoreHome} — ${m.scoreAway}</div>
+      </div>`;
+    }).join('') : `<div class="empty">Aucun match récent.</div>`;
+  }
+
+  // ---------- CSV export ----------
+  function exportCSV(){
+    if(matches.length === 0){
+      alert('Aucun match à exporter.');
+      return;
+    }
+    const headers = ['Date','Competition','Multiplex','Domicile','Exterieur','ScoreDomicile','ScoreExterieur','EquipesMultiplex','DetailsMultiplex','NombreMatchsMultiplex','Duree','Note','Commentaire'];
+    const rows = matches.map(m => [
+      m.date, m.competition, m.isMultiplex ? 'Oui' : 'Non',
+      m.home ?? '', m.away ?? '', m.scoreHome ?? '', m.scoreAway ?? '',
+      m.isMultiplex ? (m.multiplexTeams || []).join(', ') : '',
+      m.isMultiplex && m.subMatches ? m.subMatches.map(s => `${s.home} ${s.scoreHome ?? '?'}-${s.scoreAway ?? '?'} ${s.away}`).join(' | ') : '',
+      m.isMultiplex ? (m.multiplexCount || '') : '',
+      m.duration, m.rating,
+      (m.comment || '').replace(/"/g, '""')
+    ]);
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(field => `"${String(field ?? '')}"`).join(';'))
+      .join('\n');
+    const blob = new Blob(['\ufeff' + csvContent], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `matchs-foot-${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  // ---------- Helpers ----------
+  function escapeHtml(str){
+    if(str === undefined || str === null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+  function formatDate(dateStr){
+    if(!dateStr) return '';
+    const d = new Date(dateStr + 'T00:00:00');
+    if(isNaN(d)) return dateStr;
+    return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'numeric'});
+  }
+
+  // ---------- Init ----------
+  loadMatches();
+  loadCompetitions();
+  renderCompetitionSelect();
+  document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+  renderMatchList();
+  renderDashboard();
+</script>
+</body>
+</html>
