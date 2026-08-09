@@ -426,7 +426,8 @@
               <th class="num">V</th>
               <th class="num">N</th>
               <th class="num">D</th>
-              <th class="num">Buts</th>
+              <th class="num">Buts marqués</th>
+              <th class="num">Buts pris</th>
             </tr>
           </thead>
           <tbody id="ranking-body"></tbody>
@@ -884,7 +885,7 @@
     // Team ranking
     const teams = {};
     function ensureTeam(name){
-      if(!teams[name]) teams[name] = {name, played:0, wins:0, draws:0, losses:0, goals:0};
+      if(!teams[name]) teams[name] = {name, played:0, wins:0, draws:0, losses:0, goals:0, goalsAgainst:0};
       return teams[name];
     }
     matches.forEach(m => {
@@ -899,6 +900,8 @@
             // n'a pas été renseigné (fréquent en multiplex).
             if(typeof s.scoreHome === 'number') home.goals += s.scoreHome;
             if(typeof s.scoreAway === 'number') away.goals += s.scoreAway;
+            if(typeof s.scoreAway === 'number') home.goalsAgainst += s.scoreAway;
+            if(typeof s.scoreHome === 'number') away.goalsAgainst += s.scoreHome;
             // Le résultat (victoire/nul/défaite) nécessite en revanche les deux scores.
             if(typeof s.scoreHome === 'number' && typeof s.scoreAway === 'number'){
               if(s.scoreHome > s.scoreAway){ home.wins++; away.losses++; }
@@ -919,11 +922,15 @@
       const away = ensureTeam(m.away);
       home.played++; away.played++;
       home.goals += m.scoreHome; away.goals += m.scoreAway;
+      home.goalsAgainst += m.scoreAway; away.goalsAgainst += m.scoreHome;
       if(m.scoreHome > m.scoreAway){ home.wins++; away.losses++; }
       else if(m.scoreHome < m.scoreAway){ away.wins++; home.losses++; }
       else { home.draws++; away.draws++; }
     });
-    const teamList = Object.values(teams).sort((a,b) => b.played - a.played || b.wins - a.wins);
+    // Classement : d'abord par nombre de matchs vus, puis par buts marqués, puis par buts encaissés (moins = mieux)
+    const teamList = Object.values(teams).sort((a,b) =>
+      b.played - a.played || b.goals - a.goals || a.goalsAgainst - b.goalsAgainst
+    );
 
     document.getElementById('stat-individual-matches').textContent = individualCount;
     document.getElementById('stat-multiplex-count').textContent = multiplexCount;
@@ -962,8 +969,9 @@
         <td class="num">${t.draws}</td>
         <td class="num">${t.losses}</td>
         <td class="num">${t.goals}</td>
+        <td class="num">${t.goalsAgainst}</td>
       </tr>
-    `).join('') : `<tr><td colspan="6" class="empty">Aucune équipe pour l'instant.</td></tr>`;
+    `).join('') : `<tr><td colspan="7" class="empty">Aucune équipe pour l'instant.</td></tr>`;
 
     // Recent feed (5 last by date)
     const recent = [...matches].sort((a,b) => (b.date || '').localeCompare(a.date || '')).slice(0,5);
