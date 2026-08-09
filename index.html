@@ -637,8 +637,8 @@
     rows.forEach(row => {
       const home = row.querySelector('.sm-home').value.trim();
       const away = row.querySelector('.sm-away').value.trim();
-      const scoreHomeRaw = row.querySelector('.sm-score-home').value;
-      const scoreAwayRaw = row.querySelector('.sm-score-away').value;
+      const scoreHomeRaw = row.querySelector('.sm-score-home').value.trim();
+      const scoreAwayRaw = row.querySelector('.sm-score-away').value.trim();
       if(!home && !away) return; // ligne vide, on l'ignore
       subs.push({
         home: home || 'Équipe inconnue',
@@ -895,8 +895,12 @@
             const home = ensureTeam(s.home);
             const away = ensureTeam(s.away);
             home.played++; away.played++;
+            // On compte les buts de chaque équipe indépendamment, même si le score adverse
+            // n'a pas été renseigné (fréquent en multiplex).
+            if(typeof s.scoreHome === 'number') home.goals += s.scoreHome;
+            if(typeof s.scoreAway === 'number') away.goals += s.scoreAway;
+            // Le résultat (victoire/nul/défaite) nécessite en revanche les deux scores.
             if(typeof s.scoreHome === 'number' && typeof s.scoreAway === 'number'){
-              home.goals += s.scoreHome; away.goals += s.scoreAway;
               if(s.scoreHome > s.scoreAway){ home.wins++; away.losses++; }
               else if(s.scoreHome < s.scoreAway){ away.wins++; home.losses++; }
               else { home.draws++; away.draws++; }
