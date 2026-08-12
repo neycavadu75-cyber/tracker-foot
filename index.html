@@ -361,6 +361,20 @@
       </div>
     </div>
 
+    <div class="panel" style="margin-top:20px;border-color:var(--gold);">
+      <div class="section-title">Sauvegarde de sécurité</div>
+      <p style="font-size:13px;color:var(--chalk-dim);margin:0 0 14px 0;line-height:1.5;">
+        Le localStorage de ton navigateur peut être vidé (nettoyage du cache, navigation privée, changement d'appareil ou de navigateur...).
+        Télécharge régulièrement une sauvegarde complète : en cas de souci, tu pourras tout restaurer en un clic, même sur un autre ordinateur.
+      </p>
+      <div class="actions-row">
+        <button type="button" class="btn" id="btn-export-backup">Télécharger une sauvegarde (JSON)</button>
+        <button type="button" class="btn secondary" id="btn-import-backup">Restaurer une sauvegarde</button>
+        <input type="file" id="backup-file-input" accept="application/json,.json" style="display:none;">
+      </div>
+      <div id="last-backup-info" style="font-size:12px;color:var(--chalk-dim);margin-top:10px;"></div>
+    </div>
+
     <div class="toolbar">
       <div class="search-box">
         <input type="text" id="search-input" placeholder="Rechercher une équipe, une compétition, un commentaire..." oninput="renderMatchList()">
@@ -1029,6 +1043,110 @@
     URL.revokeObjectURL(url);
   }
 
+  // ---------- Sauvegarde complète (JSON) : export / import ----------
+  const LAST_BACKUP_KEY = 'football_tracker_last_backup';
+
+  function renderLastBackupInfo(){
+    const infoEl = document.getElementById('last-backup-info');
+    if(!infoEl) return;
+    const last = localStorage.getItem(LAST_BACKUP_KEY);
+    infoEl.textContent = last
+      ? `Dernière sauvegarde téléchargée : ${new Date(last).toLocaleString('fr-FR')}`
+      : "Aucune sauvegarde téléchargée pour l'instant.";
+  }
+
+  function exportBackup(){
+    const payload = {
+      type: 'football-tracker-backup',
+      exportedAt: new Date().toISOString(),
+      matches,
+      competitions
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `sauvegarde-tracker-foot-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    try{ localStorage.setItem(LAST_BACKUP_KEY, new Date().toISOString()); }catch(e){}
+    renderLastBackupInfo();
+  }
+
+  let pendingImportData = null;
+  function importBackup(file){
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      let data;
+      try{
+        data = JSON.parse(e.target.result);
+      }catch(err){
+        alert("Ce fichier n'est pas une sauvegarde JSON valide.");
+        return;
+      }
+      if(!data || !Array.isArray(data.matches)){
+        alert("Ce fichier ne semble pas être une sauvegarde valide de l'application.");
+        return;
+      }
+      const importBtn = document.getElementById('btn-import-backup');
+      pendingImportData = data;
+      importBtn.textContent = `Confirmer la restauration (${data.matches.length} match(s)) ?`;
+      importBtn.classList.remove('secondary');
+      importBtn.classList.add('danger');
+      clearTimeout(importBtn._resetTimeout);
+      importBtn._resetTimeout = setTimeout(() => {
+        pendingImportData = null;
+        importBtn.textContent = 'Restaurer une sauvegarde';
+        importBtn.classList.add('secondary');
+        importBtn.classList.remove('danger');
+      }, 6000);
+    };
+    reader.readAsText(file);
+  }
+
+  function applyPendingImport(){
+    if(!pendingImportData) return;
+    matches = Array.isArray(pendingImportData.matches) ? pendingImportData.matches : [];
+    competitions = Array.isArray(pendingImportData.competitions) && pendingImportData.competitions.length
+      ? pendingImportData.competitions
+      : competitions;
+    saveMatches();
+    saveCompetitions();
+    pendingImportData = null;
+    const importBtn = document.getElementById('btn-import-backup');
+    clearTimeout(importBtn._resetTimeout);
+    importBtn.textContent = 'Restaurer une sauvegarde';
+    importBtn.classList.add('secondary');
+    importBtn.classList.remove('danger');
+    resetMatchForm();
+    renderCompetitionSelect();
+    renderCompetitionsManager();
+    renderMatchList();
+    renderDashboard();
+  }
+
+  const exportBackupBtn = document.getElementById('btn-export-backup');
+  if(exportBackupBtn) exportBackupBtn.addEventListener('click', exportBackup);
+
+  const importBackupBtn = document.getElementById('btn-import-backup');
+  const backupFileInput = document.getElementById('backup-file-input');
+  if(importBackupBtn && backupFileInput){
+    importBackupBtn.addEventListener('click', () => {
+      if(pendingImportData){
+        applyPendingImport();
+      } else {
+        backupFileInput.click();
+      }
+    });
+    backupFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if(file) importBackup(file);
+      backupFileInput.value = '';
+    });
+  }
+
   // ---------- Helpers ----------
   function escapeHtml(str){
     if(str === undefined || str === null) return '';
@@ -1047,6 +1165,7 @@
   loadMatches();
   loadCompetitions();
   renderCompetitionSelect();
+  renderLastBackupInfo();
   document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
   renderMatchList();
   renderDashboard();
