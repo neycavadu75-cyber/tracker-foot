@@ -206,6 +206,19 @@
   .donut-legend-pct{font-family:'JetBrains Mono';font-weight:700;color:var(--gold);font-size:13px;}
   .donut-legend-count{font-size:11px;color:var(--chalk-dim);}
 
+  /* --- Suggestions d'équipes --- */
+  .team-suggest-box{
+    display:none;position:fixed;z-index:200;
+    background:var(--panel-2);border:1px solid var(--turf);border-radius:8px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.4);max-height:220px;overflow-y:auto;
+  }
+  .team-suggest-item{
+    padding:9px 12px;font-size:13.5px;color:var(--chalk);cursor:pointer;
+    border-bottom:1px solid var(--line);transition:.1s;
+  }
+  .team-suggest-item:last-child{border-bottom:none;}
+  .team-suggest-item:hover, .team-suggest-item.active{background:var(--turf-dim);color:#08150c;font-weight:600;}
+
   table{width:100%;border-collapse:collapse;font-size:13px;}
   th{
     text-align:left;text-transform:uppercase;font-size:10.5px;letter-spacing:1px;
@@ -488,6 +501,8 @@
 
 </div>
 
+<div id="team-suggest-box" class="team-suggest-box"></div>
+
 <script>
   const STORAGE_KEY = 'football_tracker_matches';
   const COMP_STORAGE_KEY = 'football_tracker_competitions';
@@ -655,6 +670,67 @@
     });
   }
 
+  // ---------- Suggestions d'équipes (historique cliquable) ----------
+  function getKnownTeams(){
+    const seen = new Map(); // clé en minuscule -> casse d'origine (1re rencontrée)
+    function addTeam(t){
+      if(!t) return;
+      const key = t.trim().toLowerCase();
+      if(!key) return;
+      if(!seen.has(key)) seen.set(key, t.trim());
+    }
+    matches.forEach(m => {
+      if(m.isMultiplex){
+        (m.subMatches || []).forEach(s => { addTeam(s.home); addTeam(s.away); });
+        (m.multiplexTeams || []).forEach(addTeam);
+      } else {
+        addTeam(m.home); addTeam(m.away);
+      }
+    });
+    return Array.from(seen.values()).sort((a, b) => a.localeCompare(b, 'fr'));
+  }
+
+  const teamSuggestBox = document.getElementById('team-suggest-box');
+  let teamSuggestTargetInput = null;
+
+  function showTeamSuggestions(input){
+    const query = input.value.trim().toLowerCase();
+    const known = getKnownTeams();
+    const filtered = (query ? known.filter(t => t.toLowerCase().includes(query)) : known).slice(0, 8);
+    if(filtered.length === 0){
+      hideTeamSuggestions();
+      return;
+    }
+    teamSuggestTargetInput = input;
+    teamSuggestBox.innerHTML = filtered.map(t => `<div class="team-suggest-item" data-team="${escapeHtml(t)}">${escapeHtml(t)}</div>`).join('');
+    const rect = input.getBoundingClientRect();
+    teamSuggestBox.style.left = rect.left + 'px';
+    teamSuggestBox.style.top = (rect.bottom + 4) + 'px';
+    teamSuggestBox.style.width = Math.max(rect.width, 160) + 'px';
+    teamSuggestBox.style.display = 'block';
+  }
+  function hideTeamSuggestions(){
+    teamSuggestBox.style.display = 'none';
+    teamSuggestTargetInput = null;
+  }
+  function attachTeamAutocomplete(input){
+    if(!input) return;
+    input.addEventListener('focus', () => showTeamSuggestions(input));
+    input.addEventListener('input', () => showTeamSuggestions(input));
+    input.addEventListener('blur', () => { setTimeout(hideTeamSuggestions, 150); });
+  }
+  // mousedown (avant le blur du champ) pour que le clic soit bien pris en compte
+  teamSuggestBox.addEventListener('mousedown', (e) => {
+    const item = e.target.closest('.team-suggest-item');
+    if(!item || !teamSuggestTargetInput) return;
+    e.preventDefault();
+    teamSuggestTargetInput.value = item.dataset.team;
+    teamSuggestTargetInput.focus();
+    hideTeamSuggestions();
+  });
+  window.addEventListener('scroll', hideTeamSuggestions, true);
+  window.addEventListener('resize', hideTeamSuggestions);
+
   // ---------- Toggle Multiplex ----------
   const multiplexCheckbox = document.getElementById('f-is-multiplex');
   const simpleFieldsEl = document.getElementById('simple-match-fields');
@@ -678,6 +754,8 @@
       <button type="button" class="btn danger small sm-remove">✕</button>
     `;
     submatchListEl.appendChild(row);
+    attachTeamAutocomplete(row.querySelector('.sm-home'));
+    attachTeamAutocomplete(row.querySelector('.sm-away'));
   }
   function clearSubmatchRows(){
     submatchListEl.innerHTML = '';
@@ -1262,6 +1340,8 @@
   loadCompetitions();
   renderCompetitionSelect();
   renderLastBackupInfo();
+  attachTeamAutocomplete(document.getElementById('f-home'));
+  attachTeamAutocomplete(document.getElementById('f-away'));
   document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
   renderMatchList();
   renderDashboard();
